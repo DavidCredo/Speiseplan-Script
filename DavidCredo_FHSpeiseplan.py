@@ -6,9 +6,15 @@ import pandas as pd
 import re
 
 # Initialwerte 
+HEADERS = ({'User-Agent':
+            'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.2228.0 Safari/537.36',
+            'Accept-Language': 'de-DE, en;q=0.5'})
+
 url = "https://www.studentenwerk.sh/de/essen/standorte/kiel/schwentinemensa/speiseplan.html"
 titel =[]
 preis = []
+results = requests.get(url, headers= HEADERS )
+soup = BeautifulSoup(results.text, "html.parser")
 
 # Funktion die die tableData Elemente mit dem zum Gericht gehörenden Preis sucht
 def find_price(e):
@@ -18,15 +24,6 @@ def find_price(e):
 def find_title(e):
     if e.find("td") and find_price(e) != None:
         return e.find("strong").text
-
-
-HEADERS = ({'User-Agent':
-            'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.2228.0 Safari/537.36',
-            'Accept-Language': 'de-DE, en;q=0.5'})
-
-results = requests.get(url, headers= HEADERS )
-
-soup = BeautifulSoup(results.text, "html.parser")
 
 #Suchen nach korrekten Table Elementen um nicht sämtliche Gerichte der Woche abzugreifen
 today = soup.find("div", class_="day today")
