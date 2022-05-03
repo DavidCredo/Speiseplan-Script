@@ -1,9 +1,17 @@
-# Skript um den heutigen Speiseplan der FH-Kiel Mensa in eine CSV Datei auszugeben.
+# Skript um den heutigen Speiseplan der FH-Kiel Mensa in meine Notion DB geladen.
 # Übungsprojekt des IDW Kurses "Automate boring stuff with python"
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
+import notion_df
+notion_df.pandas()
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+notion_api_key = os.getenv('NOTION_API_KEY')
+notion_db = os.getenv('NOTION_DB_URL')
 
 # Initialwerte 
 HEADERS = ({'User-Agent':
@@ -16,7 +24,7 @@ preis = []
 results = requests.get(url, headers= HEADERS )
 soup = BeautifulSoup(results.text, "html.parser")
 
-# Funktion die die tableData Elemente mit dem zum Gericht gehörenden Preis sucht
+# Funktionen die die tableData Elemente mit dem zum Gericht zugehörigen Titel/Preis sucht
 def find_price(e):
     if e.find(string=re.compile("€")):
         return e.find(string=re.compile("€"))
@@ -26,12 +34,15 @@ def find_title(e):
         return e.find("strong").text
 
 #Suchen nach korrekten Table Elementen um nicht sämtliche Gerichte der Woche abzugreifen
-today = soup.find("div", class_="day today")
-todays_dishes = today.find_all("tr")
-# Erstes Table Element ist redundant für die Darstellung und wird aus dem Array entfernt
-todays_dishes.pop(0)
+def find_todays_dishes():
+    today = soup.find("div", class_="day today")
+    todays_dishes = today.find_all("tr")
+    # Erstes Table Element ist redundant für die Darstellung und wird aus dem Array entfernt
+    todays_dishes.pop(0)
+    return todays_dishes
 
-# Loop über die Elemente im dishes Array um die Titel und Preis Arrays mit den korrekten Werten zu befüllen
+todays_dishes = find_todays_dishes()
+# Loop über die Elemente in dishes Array um die Titel und Preis Arrays mit den korrekten Werten zu befüllen
 for element in todays_dishes:
     title_temp = find_title(element)
     if title_temp != None:
@@ -60,6 +71,9 @@ def create_data_frame():
     clean_dish_table = empty_elements.copy()
     clean_dish_table.dropna(inplace = True)
 
-    clean_dish_table.to_csv("Speiseplan.csv")
+    # 
+    return clean_dish_table
 
-create_data_frame()
+clean_dish_table = create_data_frame()
+notion_df.upload(clean_dish_table, notion_db, title="Playground DB", api_key=notion_api_key)
+
