@@ -5,9 +5,9 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import re
 import notion_df
-notion_df.pandas()
 import os
 from dotenv import load_dotenv
+notion_df.pandas()
 load_dotenv()
 
 notion_api_key = os.getenv('NOTION_API_KEY')
@@ -63,7 +63,7 @@ def create_data_frame():
         "Titel": titel,
         "Preis": preis,
     })
-# Logik um die leeren Elemente aus dem DataFrame zu löschen.
+#  leere Elemente aus dem DataFrame löschen.
 # Regex um nach leeren Reihen im table zu suchen und die Werte zu ersetzen
     empty_elements = dish_table.copy()
     empty_elements = empty_elements.replace(r'^s*$', float('NaN'), regex = True)
@@ -71,7 +71,6 @@ def create_data_frame():
     clean_dish_table = empty_elements.copy()
     clean_dish_table.dropna(inplace = True)
 
-    # 
     return clean_dish_table
 
 clean_dish_table = create_data_frame()
