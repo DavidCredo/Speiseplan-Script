@@ -7,6 +7,7 @@ import re
 import notion_df
 import os
 from dotenv import load_dotenv
+import datetime
 notion_df.pandas()
 load_dotenv()
 
@@ -18,27 +19,31 @@ HEADERS = ({'User-Agent':
             'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.2228.0 Safari/537.36',
             'Accept-Language': 'de-DE, en;q=0.5'})
 
-url = "https://www.studentenwerk.sh/de/essen/standorte/kiel/schwentinemensa/speiseplan.html"
-titel =[]
+today = datetime.date.today().strftime('%Y-%m-%d')
+print(today)
+url = "https://studentenwerk.sh/de/mensen-in-kiel?ort=1&mensa=5#mensaplan"
+titel = []
+diet = []
 preis = []
 results = requests.get(url, headers= HEADERS )
 soup = BeautifulSoup(results.text, "html.parser")
 
 # Funktionen die die tableData Elemente mit dem zum Gericht zugehörigen Titel/Preis sucht
 def find_price(e):
-    if e.find(string=re.compile("€")):
-        return e.find(string=re.compile("€"))
+    if e.find(class_="menu_preis"):
+        return e.find(class_="menu_preis").text
 
 def find_title(e):
-    if e.find("td") and find_price(e) != None:
-        return e.find("strong").text
+    if e.find(class_="menu_name"):
+        return e.find(class_="menu_name").text
 
+def find_diet(e):
+    if e.find("img"):
+        return e.find("img")['alt']
 #Suchen nach korrekten Table Elementen um nicht sämtliche Gerichte der Woche abzugreifen
 def find_todays_dishes():
-    today = soup.find("div", class_="day today")
-    todays_dishes = today.find_all("tr")
-    # Erstes Table Element ist redundant für die Darstellung und wird aus dem Array entfernt
-    todays_dishes.pop(0)
+    todays_date = soup.find(attrs={"class": "tag_headline", "data-day" : today})
+    todays_dishes = todays_date.find_all(class_="mensa_menu_detail")
     return todays_dishes
 
 todays_dishes = find_todays_dishes()
@@ -55,12 +60,15 @@ for element in todays_dishes:
         preis.append(price_element)
     else:
         preis.append(None)
-
+    diet_element = find_diet(element)
+    if diet_element != None:
+        diet.append(diet_element)
 
 def create_data_frame():
 
     dish_table = pd.DataFrame({
         "Titel": titel,
+        "Diet": diet,
         "Preis": preis,
     })
 #  leere Elemente aus dem DataFrame löschen.
@@ -74,5 +82,6 @@ def create_data_frame():
     return clean_dish_table
 
 clean_dish_table = create_data_frame()
+# print(clean_dish_table)
 notion_df.upload(clean_dish_table, notion_db, title="Playground DB", api_key=notion_api_key)
 
