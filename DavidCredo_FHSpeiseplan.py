@@ -3,7 +3,6 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import re
 import notion_df
 import os
 from dotenv import load_dotenv
@@ -20,12 +19,11 @@ HEADERS = ({'User-Agent':
             'Accept-Language': 'de-DE, en;q=0.5'})
 
 today = datetime.date.today().strftime('%Y-%m-%d')
-print(today)
 url = "https://studentenwerk.sh/de/mensen-in-kiel?ort=1&mensa=5#mensaplan"
 titel = []
 diet = []
 preis = []
-results = requests.get(url, headers= HEADERS )
+results = requests.get(url, headers = HEADERS )
 soup = BeautifulSoup(results.text, "html.parser")
 
 # Funktionen die die tableData Elemente mit dem zum Gericht zugehörigen Titel/Preis sucht
@@ -64,6 +62,7 @@ for element in todays_dishes:
     if diet_element != None:
         diet.append(diet_element)
 
+empty_data_frame = pd.DataFrame()
 def create_data_frame():
 
     dish_table = pd.DataFrame({
@@ -82,6 +81,5 @@ def create_data_frame():
     return clean_dish_table
 
 clean_dish_table = create_data_frame()
-# print(clean_dish_table)
-notion_df.upload(clean_dish_table, notion_db, title="Playground DB", api_key=notion_api_key)
 
+notion_df.upload(clean_dish_table, notion_db, title="Playground DB", api_key=notion_api_key)        
