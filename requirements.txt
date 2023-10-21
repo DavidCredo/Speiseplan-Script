@@ -1,0 +1,6 @@
+# Flask-Web-Scraper
+flask
+bs4
+requests
+gunicorn
+pandas
