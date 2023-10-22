@@ -10,5 +10,4 @@ COPY . .
 
 EXPOSE 80
 
-# Set the entrypoint to run the Flask application using gunicorn
 ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:80", "main:app"]

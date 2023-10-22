@@ -4,7 +4,7 @@ import pandas as pd
 import datetime
 
 class Mensa:
-    def __init__(self, url):
+    def __init__(self, url, day=datetime.datetime.today().strftime('%Y-%m-%d')):
         self.HEADERS = ({'User-Agent':
             'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.2228.0 Safari/537.36',
             'Accept-Language': 'de-DE, en;q=0.5'})
@@ -13,7 +13,7 @@ class Mensa:
         self.diet = []
         self.title = []
         self.price = []
-        self.day = datetime.date.today().strftime('%Y-%m-%d')
+        self.day = day
         self.results = None
         self.soup = None
         self.data_frame = None
@@ -25,17 +25,28 @@ class Mensa:
         self.results = requests.get(self.url, headers = self.HEADERS )
         self.soup = BeautifulSoup(self.results.text, "html.parser")
 
-    def find_price(self, e):
+    def find_price(self, e: BeautifulSoup):
         if e.find(class_="menu_preis"):
-            return e.find(class_="menu_preis").text
+            raw_price = e.find(class_="menu_preis").text
+            first_price = raw_price.split(" €")[0]
+            return first_price
 
     def find_title(self, e):
         if e.find(class_="menu_name"):
             return e.find(class_="menu_name").text
 
-    def find_diet(self, e):
+    def find_diet(self, e: BeautifulSoup):
         if e.find("img"):
-            return e.find("img")['alt']
+            tags = e.findAll("img")
+            diet_label = ""
+            for tag in tags:
+                if tag["alt"] == "vegan":
+                    diet_label = "Vegan"
+                    return diet_label
+                else:
+                    diet_label = "Nicht Vegan"
+                    continue
+            return diet_label
 
     #Suchen nach korrekten Table Elementen um nicht sämtliche Gerichte der Woche abzugreifen
     def find_todays_dishes(self):
