@@ -9,7 +9,7 @@ url = "https://studentenwerk.sh/de/mensen-in-kiel?ort=1&mensa=5#mensaplan"
 def get_data():
     mensa = Mensa(url)
     mensa.parse_html()
-    mensa.find_todays_dishes()
+    mensa.find_days_dishes()
     mensa.create_data_frame()
     payload = loads(mensa.get_mensa_data())
 
