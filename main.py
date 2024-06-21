@@ -5,7 +5,8 @@ from flask import Flask, jsonify
 app = Flask(__name__)
 url = "https://studentenwerk.sh/de/mensen-in-kiel?ort=1&mensa=5#mensaplan"
 
-@app.route('/mensa')
+
+@app.route("/mensa")
 def get_data():
     mensa = Mensa(url)
     mensa.parse_html()
@@ -17,8 +18,9 @@ def get_data():
         return jsonify({"message": "No data found"}), 404
     else:
         return jsonify(payload)
-    
-@app.route('/mensa/<day>')
+
+
+@app.route("/mensa/<day>")
 def get_day_data(day):
     mensa = Mensa(url, day)
     mensa.parse_html()
@@ -31,6 +33,6 @@ def get_day_data(day):
     else:
         return jsonify(payload)
 
-if __name__ == '__main__':
-    app.run()
 
+if __name__ == "__main__":
+    app.run()
